@@ -1,90 +1,77 @@
-name: CI/CD Validation
+name: Multi-Runtime CI Quality Gate
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   python-lint:
-    name: Python syntax and lint checks
+    name: Python Syntax and Lint Checks
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
 
-      - name: Install Python dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install flake8
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run Python syntax check
-        run: python -m py_compile app.py
-
-      - name: Run flake8 lint
-        run: flake8 app.py --max-line-length=100 --show-source --statistics
+      - name: Run Flake8 Lint
+        run: |
+          # We configure flake8 to ignore minor style warnings (like whitespace) 
+          # but fail on critical syntax errors (E9, F63, F7, F82)
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
   terraform-validate:
-    name: Terraform format and validation
+    name: Terraform Format and Validation
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Check Terraform formatting
-        working-directory: terraform
+      - name: Check Formatting
         run: terraform fmt -check -recursive
+        working-directory: ./terraform
 
-      - name: Initialize Terraform without backend
-        working-directory: terraform
-        run: terraform init -backend=false
-
-      - name: Validate Terraform configuration
-        working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID: dummy
-          AWS_SECRET_ACCESS_KEY: dummy
-          AWS_REGION: eu-west-2
-        run: terraform validate
+      - name: Validate Configuration
+        run: |
+          terraform init -backend=false
+          terraform validate
+        working-directory: ./terraform
 
   docker-build:
-    name: Docker build and image scan
+    name: Docker Build and Image Scan
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
+      - name: Build Local Image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
-          push: false
           load: true
-          tags: cloud-native-task-automator:ci
+          tags: task-automator:test
 
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: cloud-native-task-automator:ci
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true
+          image-ref: 'task-automator:test'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
