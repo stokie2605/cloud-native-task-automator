@@ -1,10 +1,14 @@
-![CI Quality Gate](https://github.com/stokie2605/cloud-native-task-automator/actions/workflows/ci-cd.yml/badge.svg)
+[![CI/CD Quality Gate](https://github.com/stokie2605/cloud-native-task-automator/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/stokie2605/cloud-native-task-automator/actions/workflows/ci-cd.yml)
+
 # Cloud-Native Task Automator
 
 An intermediate-level engineering project focused on Infrastructure as Code (IaC), automated cloud provisioning, and secure scheduled task execution.
 
+This project provisions the AWS infrastructure needed to run a scheduled containerized health-check task.
+
 ## 🏗️ Architecture Overview
-*Currently in Phase 4: CI/CD Validation Pipeline Added*
+
+**Phase 4 complete: CI/CD validation pipeline added**
 
 The objective of this project is to use **Terraform** to declare and provision a fully isolated cloud environment that runs a containerized automation script on a native cron schedule.
 
@@ -93,4 +97,4 @@ Replace `container_image` with a real ECR image URI before applying the schedule
 - Add an ECR repository and authenticated image push workflow.
 - Add AWS OIDC federation for GitHub Actions instead of long-lived credentials.
 - Add a gated Terraform plan/apply workflow for real AWS deployment.
-- Change Trivy from report-only to fail-on-high once upstream base image CVEs are patched or a cleaner base image is selected.
+- Move Trivy from report-only to blocking mode after selecting a base image with acceptable upstream CVE posture.
