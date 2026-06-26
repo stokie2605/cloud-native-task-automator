@@ -1,3 +1,4 @@
+![CI Quality Gate](https://github.com/stokie2605/cloud-native-task-automator/actions/workflows/ci-cd.yml/badge.svg)
 # Cloud-Native Task Automator
 
 An intermediate-level engineering project focused on Infrastructure as Code (IaC), automated cloud provisioning, and secure scheduled task execution.
