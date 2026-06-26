@@ -1,4 +1,64 @@
-docker-build:
+name: Multi-Runtime CI Quality Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  python-lint:
+    name: Python Syntax and Lint Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Flake8 Lint
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  terraform-validate:
+    name: Terraform Format and Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Formatting
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            terraform fmt -check -recursive
+          else
+            echo "No terraform directory found, skipping formatting check."
+          fi
+
+      - name: Validate Configuration
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            terraform init -backend=false
+            terraform validate
+          else
+            echo "No terraform directory found, skipping validation."
+          fi
+
+  docker-build:
     name: Docker Build and Image Scan
     runs-on: ubuntu-latest
     steps:
@@ -20,5 +80,5 @@ docker-build:
         with:
           image-ref: 'cloud-cost-guardian:test'
           format: 'table'
-          exit-code: '1' # Tight security gate: fail if critical flaws exist
+          exit-code: '1'
           severity: 'CRITICAL,HIGH'
