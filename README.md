@@ -3,14 +3,14 @@
 An intermediate-level engineering project focused on Infrastructure as Code (IaC), automated cloud provisioning, and secure scheduled task execution.
 
 ## 🏗️ Architecture Overview
-*Currently in Phase 2: Core Automation Script & Local Containerization*
+*Currently in Phase 3: Terraform Infrastructure Modules Complete*
 
 The objective of this project is to use **Terraform** to declare and provision a fully isolated cloud environment that runs a containerized automation script on a native cron schedule.
 
 ### Planned Target Stack:
-- **Infrastructure:** AWS (VPC, IAM Least-Privilege Roles, ECS Fargate or AWS Lambda)
+- **Infrastructure:** AWS (VPC, IAM Least-Privilege Roles, ECS Fargate)
 - **Provisioning Tool:** Terraform
-- **Automation Logic:** Python / Node.js
+- **Automation Logic:** Python containerized with Docker
 - **CI/CD & Governance:** GitHub Actions (with security linting)
 
 ---
@@ -23,6 +23,13 @@ The current implementation includes a Python infrastructure health check script 
 - `app.py` - modular Python health check utility using `requests`.
 - `requirements.txt` - pinned Python dependency list.
 - `Dockerfile` - secure multi-stage Python 3.11 container build running as a non-root user.
+
+### Files Added in Phase 3
+- `terraform/providers.tf` - AWS provider and Terraform version constraints.
+- `terraform/variables.tf` - configurable region, environment, image URI, and health check target URL.
+- `terraform/vpc.tf` - multi-AZ VPC, public/private subnets, NAT gateways, routing, and outbound-only ECS task security group.
+- `terraform/iam.tf` - least-privilege ECS task execution, task runtime, and EventBridge invoke roles.
+- `terraform/ecs_schedule.tf` - ECS Fargate cluster, task definition, CloudWatch logging, and EventBridge schedule running every 12 hours.
 
 ### Local Run
 
@@ -44,6 +51,16 @@ docker build -t cloud-native-task-automator .
 docker run --rm cloud-native-task-automator
 ```
 
+### Terraform Plan
+
+```bash
+cd terraform
+terraform init
+terraform plan
+```
+
+Replace `container_image` with a real ECR image URI before applying the scheduled ECS task in AWS.
+
 ---
 
 ## 🛠️ Step-by-Step Implementation Log
@@ -56,9 +73,10 @@ docker run --rm cloud-native-task-automator
 - [x] Implemented modular Python health check utility with structured JSON logging.
 - [x] Hardened container environment by enforcing a non-root user policy inside the Dockerfile.
 
-### ⬜ Phase 3: Writing the Terraform configuration modules.
-- [ ] Define provider configuration and remote-state strategy.
-- [ ] Build network, IAM, and scheduled execution modules.
+### 🟦 Phase 3: Writing the Terraform configuration modules.
+- [x] Declared multi-AZ VPC architecture with public/private subnet isolation.
+- [x] Enforced IAM least-privilege task execution roles for cloud compute containment.
+- [x] Provisioned ECS Fargate task definitions linked to an EventBridge cron schedule for serverless execution.
 
 ### ⬜ Phase 4: Constructing the secure GitHub Actions deployment pipeline.
 - [ ] Add CI checks for Python syntax, dependency installation, and container build validation.
