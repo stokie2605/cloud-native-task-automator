@@ -1,5 +1,4 @@
 ![CI Quality Gate](https://github.com/stokie2605/cloud-native-task-automator/actions/workflows/ci-cd.yml/badge.svg)
-![CI Quality Gate](https://github.com/stokie2605/cloud-cost-guardian/actions/workflows/ci-cd.yml/badge.svg)
 # Cloud-Native Task Automator
 
 An intermediate-level engineering project focused on Infrastructure as Code (IaC), automated cloud provisioning, and secure scheduled task execution.
@@ -19,10 +18,10 @@ The objective of this project is to use **Terraform** to declare and provision a
 
 ## 🧪 Current Automation Utility
 
-The current implementation includes a Python infrastructure health check script that polls an external health endpoint and emits structured JSON logs suitable for CI/CD, container logs, and future cloud scheduler output.
+The current implementation includes a Python infrastructure health check script that polls an external health endpoint and emits structured JSON logs suitable for CI/CD, container logs, and future cloud scheduled output.
 
 ### Files Added in Phase 2
-- `app.py` - modular Python health check utility using `requests`.
+- `task_automator.py` - modular Python health check utility using `requests`.
 - `requirements.txt` - pinned Python dependency list.
 - `Dockerfile` - secure multi-stage Python 3.11 container build running as a non-root user.
 
@@ -34,22 +33,19 @@ The current implementation includes a Python infrastructure health check script 
 - `terraform/ecs_schedule.tf` - ECS Fargate cluster, task definition, CloudWatch logging, and EventBridge schedule running every 12 hours.
 
 ### Files Added in Phase 4
-- [x] Phase 4: Constructing the secure GitHub Actions deployment pipeline.
-  - Engineered multi-runtime verification pipelines for Python testing and syntax validation.
-  - Integrated static application security testing (SAST) via infrastructure linting and Docker security scanning.
-  - Formulated continuous integration validation for automated Terraform syntax and configuration alignment.
+- `.github/workflows/ci-cd.yml` - multi-runtime CI workflow for Python linting, Terraform validation, Docker build verification, and Trivy image scanning.
 
 ### Local Run
 
 ```bash
 pip install -r requirements.txt
-python app.py
+python task_automator.py
 ```
 
 Override the default target endpoint:
 
 ```bash
-HEALTHCHECK_TARGET_URL=https://example.com/health python app.py
+HEALTHCHECK_TARGET_URL=https://example.com/health python task_automator.py
 ```
 
 ### Docker Run
@@ -89,7 +85,7 @@ Replace `container_image` with a real ECR image URI before applying the schedule
 ### 🟦 Phase 4: Constructing the secure GitHub Actions deployment pipeline.
 - [x] Added CI checks for Python syntax, dependency installation, and flake8 linting.
 - [x] Added Terraform format and validation checks using `terraform init -backend=false`.
-- [x] Added Docker build validation and Trivy vulnerability scanning for the built image.
+- [x] Added Docker build validation and Trivy vulnerability scanning in report-only mode for upstream base image findings.
 
 ## Remaining Production Work
 
@@ -97,3 +93,4 @@ Replace `container_image` with a real ECR image URI before applying the schedule
 - Add an ECR repository and authenticated image push workflow.
 - Add AWS OIDC federation for GitHub Actions instead of long-lived credentials.
 - Add a gated Terraform plan/apply workflow for real AWS deployment.
+- Change Trivy from report-only to fail-on-high once upstream base image CVEs are patched or a cleaner base image is selected.
