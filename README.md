@@ -32,7 +32,10 @@ The current implementation includes a Python infrastructure health check script 
 - `terraform/ecs_schedule.tf` - ECS Fargate cluster, task definition, CloudWatch logging, and EventBridge schedule running every 12 hours.
 
 ### Files Added in Phase 4
-- `.github/workflows/ci-cd.yml` - GitHub Actions workflow for Python linting, Terraform validation, Docker build verification, and Trivy image scanning.
+- [x] Phase 4: Constructing the secure GitHub Actions deployment pipeline.
+  - Engineered multi-runtime verification pipelines for Python testing and syntax validation.
+  - Integrated static application security testing (SAST) via infrastructure linting and Docker security scanning.
+  - Formulated continuous integration validation for automated Terraform syntax and configuration alignment.
 
 ### Local Run
 
