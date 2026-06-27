@@ -1,0 +1,13 @@
+.git
+.github
+terraform
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.env
+.env.*
+*.log
+README.md
+docs
