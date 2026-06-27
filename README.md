@@ -2,44 +2,87 @@
 
 # Cloud-Native Task Automator
 
-An intermediate-level engineering project focused on Infrastructure as Code (IaC), automated cloud provisioning, and secure scheduled task execution.
+Cloud-Native Task Automator is a DevOps portfolio project that provisions the AWS infrastructure for a scheduled containerized health-check task. It combines Python automation, Docker, Terraform, ECS Fargate, EventBridge scheduling, IAM least privilege, and GitHub Actions validation into one cloud-native workflow.
 
-This project provisions the AWS infrastructure needed to run a scheduled containerized health-check task.
+The project demonstrates how a small operational script can be packaged, validated, scanned, and prepared for scheduled execution in AWS.
 
-## 🏗️ Architecture Overview
+## Recruiter Snapshot
 
-**Phase 4 complete: CI/CD validation pipeline added**
+| Area | What This Project Shows |
+| --- | --- |
+| Automation | Python health-check utility with structured JSON logs and configurable target endpoint |
+| Containers | Multi-stage Docker build, slim runtime image, dependency isolation, non-root execution |
+| Infrastructure as Code | Terraform-defined AWS provider, VPC, IAM roles, ECS task, CloudWatch logs, and EventBridge schedule |
+| CI/CD | GitHub Actions quality gate for Python linting, Terraform validation, Docker build, and Trivy scanning |
+| Cloud Operations | Scheduled serverless task pattern suitable for uptime checks, internal probes, and operational evidence |
 
-The objective of this project is to use **Terraform** to declare and provision a fully isolated cloud environment that runs a containerized automation script on a native cron schedule.
+## Problem
 
-### Planned Target Stack:
-- **Infrastructure:** AWS (VPC, IAM Least-Privilege Roles, ECS Fargate)
-- **Provisioning Tool:** Terraform
-- **Automation Logic:** Python containerized with Docker
-- **CI/CD & Governance:** GitHub Actions (with security linting)
+Operational teams often need small recurring checks: poll a health endpoint, verify an internal service, emit logs, and fail clearly when something is wrong. Running those checks manually is inconsistent, and running them from a workstation creates weak auditability.
 
----
+## Solution
 
-## 🧪 Current Automation Utility
+This repository turns a Python health-check script into a cloud-native scheduled task pattern:
 
-The current implementation includes a Python infrastructure health check script that polls an external health endpoint and emits structured JSON logs suitable for CI/CD, container logs, and future cloud scheduled output.
+```text
+Code Commit
+   |
+   v
+GitHub Actions Quality Gate
+   |
+   +--> Python Syntax and Lint Checks
+   +--> Terraform Format and Validate
+   +--> Docker Build Verification
+   +--> Trivy Image Scan
+   |
+   v
+Docker Image Pattern
+   |
+   v
+Terraform AWS Infrastructure
+   |
+   v
+EventBridge Schedule -> ECS Fargate Task -> Structured Logs in CloudWatch
+```
 
-### Files Added in Phase 2
-- `task_automator.py` - modular Python health check utility using `requests`.
-- `requirements.txt` - pinned Python dependency list.
-- `Dockerfile` - secure multi-stage Python 3.11 container build running as a non-root user.
+## Architecture
 
-### Files Added in Phase 3
-- `terraform/providers.tf` - AWS provider and Terraform version constraints.
-- `terraform/variables.tf` - configurable region, environment, image URI, and health check target URL.
-- `terraform/vpc.tf` - multi-AZ VPC, public/private subnets, NAT gateways, routing, and outbound-only ECS task security group.
-- `terraform/iam.tf` - least-privilege ECS task execution, task runtime, and EventBridge invoke roles.
-- `terraform/ecs_schedule.tf` - ECS Fargate cluster, task definition, CloudWatch logging, and EventBridge schedule running every 12 hours.
+The Terraform configuration models a deployable AWS runtime:
 
-### Files Added in Phase 4
-- `.github/workflows/ci-cd.yml` - multi-runtime CI workflow for Python linting, Terraform validation, Docker build verification, and Trivy image scanning.
+- VPC with public/private subnet structure.
+- ECS Fargate cluster and task definition.
+- CloudWatch log group for task output.
+- EventBridge schedule that runs the task every 12 hours.
+- IAM execution, runtime, and schedule invocation roles using least-privilege boundaries.
+- Configurable health-check target URL and container image URI.
 
-### Local Run
+## DevOps Skills Demonstrated
+
+- Built a Python CLI-style automation task with clean exit codes and JSON-formatted logs.
+- Containerized the script with a multi-stage Dockerfile and non-root runtime user.
+- Declared AWS infrastructure with Terraform instead of manual console setup.
+- Added GitHub Actions checks for Python, Terraform, Docker, and image vulnerability scanning.
+- Used Trivy in report-only mode to surface base-image findings without blocking portfolio iteration.
+- Documented the path from local script to scheduled ECS Fargate workload.
+
+## Key Files
+
+| File | Purpose |
+| --- | --- |
+| `task_automator.py` | Python health-check task with structured logging and clear success/failure exit codes |
+| `requirements.txt` | Pinned Python dependencies for local and container execution |
+| `Dockerfile` | Multi-stage Python 3.11 image build with non-root runtime user |
+| `.github/workflows/ci-cd.yml` | CI/CD quality gate for linting, Terraform validation, Docker build, and Trivy scan |
+| `terraform/providers.tf` | Terraform and AWS provider constraints |
+| `terraform/variables.tf` | Configurable AWS region, environment, container image, and health-check target URL |
+| `terraform/vpc.tf` | Isolated networking foundation for ECS task execution |
+| `terraform/iam.tf` | IAM roles for ECS execution, task runtime, and scheduled invocation |
+| `terraform/ecs_schedule.tf` | ECS Fargate task, CloudWatch logging, and EventBridge schedule |
+| `docs/walkthrough.md` | Guided reviewer walkthrough for interview or portfolio review |
+
+## Local Run
+
+Install dependencies and run the health check locally:
 
 ```bash
 pip install -r requirements.txt
@@ -52,49 +95,53 @@ Override the default target endpoint:
 HEALTHCHECK_TARGET_URL=https://example.com/health python task_automator.py
 ```
 
-### Docker Run
+## Docker Run
+
+Build and run the containerized task:
 
 ```bash
 docker build -t cloud-native-task-automator .
 docker run --rm cloud-native-task-automator
 ```
 
-### Terraform Plan
+Run against a custom endpoint:
+
+```bash
+docker run --rm \
+  -e HEALTHCHECK_TARGET_URL=https://example.com/health \
+  cloud-native-task-automator
+```
+
+## Terraform Validation
+
+Validate the infrastructure configuration without creating AWS resources:
 
 ```bash
 cd terraform
-terraform init
+terraform init -backend=false
+terraform fmt -check -recursive
+terraform validate
 terraform plan
 ```
 
-Replace `container_image` with a real ECR image URI before applying the scheduled ECS task in AWS.
+Before applying in a real AWS account, replace `container_image` with an ECR image URI that points to a published image.
 
----
+## CI/CD Quality Gate
 
-## 🛠️ Step-by-Step Implementation Log
+The GitHub Actions workflow runs on pushes and pull requests to `main`:
 
-### 🟦 Phase 1: Repository Initialization & Architecture Mapping
-- [x] Created clean repository structure.
-- [x] Defined target cloud architecture and security principles.
+- Python dependency installation and flake8 syntax checks.
+- Terraform formatting and validation.
+- Docker Buildx image build verification.
+- Trivy scan for `CRITICAL` and `HIGH` image vulnerabilities.
 
-### 🟦 Phase 2: Writing the core automation script and local Dockerfile.
-- [x] Implemented modular Python health check utility with structured JSON logging.
-- [x] Hardened container environment by enforcing a non-root user policy inside the Dockerfile.
+## Production Extension Path
 
-### 🟦 Phase 3: Writing the Terraform configuration modules.
-- [x] Declared multi-AZ VPC architecture with public/private subnet isolation.
-- [x] Enforced IAM least-privilege task execution roles for cloud compute containment.
-- [x] Provisioned ECS Fargate task definitions linked to an EventBridge cron schedule for serverless execution.
+Next production-grade additions would be:
 
-### 🟦 Phase 4: Constructing the secure GitHub Actions deployment pipeline.
-- [x] Added CI checks for Python syntax, dependency installation, and flake8 linting.
-- [x] Added Terraform format and validation checks using `terraform init -backend=false`.
-- [x] Added Docker build validation and Trivy vulnerability scanning in report-only mode for upstream base image findings.
-
-## Remaining Production Work
-
-- Replace the placeholder `container_image` variable with a real ECR image URI.
 - Add an ECR repository and authenticated image push workflow.
 - Add AWS OIDC federation for GitHub Actions instead of long-lived credentials.
-- Add a gated Terraform plan/apply workflow for real AWS deployment.
-- Move Trivy from report-only to blocking mode after selecting a base image with acceptable upstream CVE posture.
+- Add a gated Terraform plan/apply workflow for controlled infrastructure changes.
+- Store health-check results in CloudWatch metrics or a lightweight datastore.
+- Send failures into Slack, Teams, PagerDuty, or ticketing workflows.
+- Move Trivy from report-only to blocking mode once the accepted CVE baseline is defined.
