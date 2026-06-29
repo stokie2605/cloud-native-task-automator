@@ -24,25 +24,27 @@ Operational teams often need small recurring checks: poll a health endpoint, ver
 
 This repository turns a Python health-check script into a cloud-native scheduled task pattern:
 
-```text
-Code Commit
-   |
-   v
-GitHub Actions Quality Gate
-   |
-   +--> Python Syntax and Lint Checks
-   +--> Terraform Format and Validate
-   +--> Docker Build Verification
-   +--> Trivy Image Scan
-   |
-   v
-Docker Image Pattern
-   |
-   v
-Terraform AWS Infrastructure
-   |
-   v
-EventBridge Schedule -> ECS Fargate Task -> Structured Logs in CloudWatch
+```mermaid
+flowchart TD
+    Commit([Code Commit]) --> GHA{GitHub Actions Quality Gate}
+    
+    subgraph CI [Continuous Integration]
+        GHA --> Py[Python Syntax & Lint]
+        GHA --> TF[Terraform Validate]
+        GHA --> Doc[Docker Build Verification]
+        GHA --> Sec[Trivy Image Scan]
+    end
+    
+    Doc --> Img[Docker Image Pattern]
+    TF --> Infra[Terraform Infrastructure]
+    
+    subgraph AWS [AWS Cloud Infrastructure]
+        EB([EventBridge Schedule]) -->|Triggers| ECS[ECS Fargate Task]
+        ECS -->|Outputs to| CW[(CloudWatch Logs)]
+    end
+    
+    Img -.->|Runs as| ECS
+    Infra -->|Provisions| AWS
 ```
 
 ## Architecture
