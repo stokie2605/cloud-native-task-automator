@@ -148,7 +148,17 @@ Next production-grade additions would be:
 - Send failures into Slack, Teams, PagerDuty, or ticketing workflows.
 - Move Trivy from report-only to blocking mode once the accepted CVE baseline is defined.
 
+## Problems Faced & Solved
+
+**Problem: A simple health-check script risks looking too small unless the deployment pattern around it is clear**
+The core Python task is intentionally lightweight — the value is in how it is packaged, scheduled, and validated. Without the surrounding infrastructure, it could look like a basic script rather than a cloud-native workload pattern.
+
+**Solution:** Packaged the script as a Dockerized ECS task, modelled the full AWS runtime using Terraform (ECS cluster, task definition, EventBridge schedule, IAM role with least-privilege permissions), and added GitHub Actions CI with Trivy security scanning. This demonstrates the complete path from a simple script to a production-grade scheduled cloud workload — which is the real skill being shown.
+
+---
+
 ## Reviewer Notes
+
 
 - Environment template: [.env.example](.env.example)
 - Sample task log: [docs/sample-task-output.json](docs/sample-task-output.json)
