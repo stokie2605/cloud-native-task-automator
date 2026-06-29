@@ -145,3 +145,9 @@ Next production-grade additions would be:
 - Store health-check results in CloudWatch metrics or a lightweight datastore.
 - Send failures into Slack, Teams, PagerDuty, or ticketing workflows.
 - Move Trivy from report-only to blocking mode once the accepted CVE baseline is defined.
+
+## Reviewer Notes
+
+- Environment template: [.env.example](.env.example)
+- Sample task log: [docs/sample-task-output.json](docs/sample-task-output.json)
+- Deployment notes: [docs/DEPLOYMENT_NOTES.md](docs/DEPLOYMENT_NOTES.md)
