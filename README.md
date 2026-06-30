@@ -165,6 +165,7 @@ Next production-grade additions would be:
 - Add AWS OIDC federation for GitHub Actions instead of long-lived credentials.
 - Add a gated Terraform plan/apply workflow for controlled infrastructure changes.
 - Store health-check results in CloudWatch metrics or a lightweight datastore.
+- Private AWS service endpoints now support Fargate image pulling and telemetry: ECR API, ECR Docker, CloudWatch Logs interface endpoints, plus an S3 gateway endpoint on private route tables. NAT remains in place for the external health-check target, but AWS control-plane traffic no longer depends solely on internet egress.
 - Send failures into Slack, Teams, PagerDuty, or ticketing workflows.
 - Move Trivy from report-only to blocking mode once the accepted CVE baseline is defined.
 
@@ -176,6 +177,11 @@ The core Python task is intentionally lightweight — the value is in how it is 
 **Solution:** Packaged the script as a Dockerized ECS task, modelled the full AWS runtime using Terraform (ECS cluster, task definition, EventBridge schedule, IAM role with least-privilege permissions), and added GitHub Actions CI with Trivy security scanning. This demonstrates the complete path from a simple script to a production-grade scheduled cloud workload — which is the real skill being shown.
 
 ---
+
+**Problem: Private Fargate tasks need reliable AWS service access for image pulls and logs**
+Scheduled tasks run in private subnets with `assign_public_ip = false`. NAT routing already provided internet egress, but ECR image pulls, S3 layer access, and CloudWatch Logs delivery were still coupled to outbound internet infrastructure.
+
+**Solution:** Added VPC endpoints for ECR API, ECR Docker, CloudWatch Logs, and S3. This keeps AWS platform traffic on private AWS networking while retaining NAT for the configured external health-check URL.
 
 ## Reviewer Notes
 
