@@ -64,7 +64,7 @@ The Terraform configuration models a deployable AWS runtime:
 - Containerized the script with a multi-stage Dockerfile and non-root runtime user.
 - Declared AWS infrastructure with Terraform instead of manual console setup.
 - Added GitHub Actions checks for Python, Terraform, Docker, and image vulnerability scanning.
-- Used Trivy in report-only mode to surface base-image findings without blocking portfolio iteration.
+- Configured Trivy as a blocking image security gate for `HIGH` and `CRITICAL` vulnerabilities.
 - Documented the path from local script to scheduled ECS Fargate workload.
 
 ## Key Files
@@ -155,7 +155,7 @@ The GitHub Actions workflow runs on pushes and pull requests to `main`:
 - Python dependency installation and flake8 syntax checks.
 - Terraform formatting and validation.
 - Docker Buildx image build verification.
-- Trivy scan for `CRITICAL` and `HIGH` image vulnerabilities.
+- Trivy scan blocks the build on `HIGH` and `CRITICAL` image vulnerabilities.
 
 ## Production Extension Path
 
@@ -167,7 +167,7 @@ Next production-grade additions would be:
 - Store health-check results in CloudWatch metrics or a lightweight datastore.
 - Private AWS service endpoints now support Fargate image pulling and telemetry: ECR API, ECR Docker, CloudWatch Logs interface endpoints, plus an S3 gateway endpoint on private route tables. NAT remains in place for the external health-check target, but AWS control-plane traffic no longer depends solely on internet egress.
 - Send failures into Slack, Teams, PagerDuty, or ticketing workflows.
-- Move Trivy from report-only to blocking mode once the accepted CVE baseline is defined.
+- Maintain a documented CVE baseline if any future image exception is deliberately accepted.
 
 ## Problems Faced & Solved
 
@@ -182,6 +182,14 @@ The core Python task is intentionally lightweight — the value is in how it is 
 Scheduled tasks run in private subnets with `assign_public_ip = false`. NAT routing already provided internet egress, but ECR image pulls, S3 layer access, and CloudWatch Logs delivery were still coupled to outbound internet infrastructure.
 
 **Solution:** Added VPC endpoints for ECR API, ECR Docker, CloudWatch Logs, and S3. This keeps AWS platform traffic on private AWS networking while retaining NAT for the configured external health-check URL.
+
+
+---
+
+**Problem: Report-only Trivy scans allowed vulnerable images to pass CI**
+The Docker image scan previously used `exit-code: '0'`, which meant the workflow could stay green even if Trivy found high or critical vulnerabilities in the image.
+
+**Solution:** Changed the Trivy gate to `exit-code: '1'` and scoped the severity filter to `HIGH,CRITICAL`, so genuine exploit-level findings fail CI immediately without creating noise from lower-severity package advisories.
 
 ## Reviewer Notes
 

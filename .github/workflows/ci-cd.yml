@@ -85,5 +85,5 @@ jobs:
         with:
           image-ref: 'cloud-native-task-automator:test'
           format: 'table'
-          exit-code: '0'
-          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
