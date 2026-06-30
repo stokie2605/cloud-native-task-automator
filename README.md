@@ -64,7 +64,7 @@ The Terraform configuration models a deployable AWS runtime:
 - Containerized the script with a multi-stage Dockerfile, a patched Python 3.12 runtime, stripped package-management tooling, and a non-root runtime user.
 - Declared AWS infrastructure with Terraform instead of manual console setup.
 - Added GitHub Actions checks for Python, Terraform, Docker, and image vulnerability scanning.
-- Configured Trivy as a blocking image security gate for `HIGH` and `CRITICAL` vulnerabilities.
+- Configured Trivy as a blocking image security gate for fixable `HIGH` and `CRITICAL` vulnerabilities.
 - Documented the path from local script to scheduled ECS Fargate workload.
 
 ## Key Files
@@ -155,7 +155,7 @@ The GitHub Actions workflow runs on pushes and pull requests to `main`:
 - Python dependency installation and flake8 syntax checks.
 - Terraform formatting and validation.
 - Docker Buildx image build verification.
-- Trivy scan blocks the build on `HIGH` and `CRITICAL` image vulnerabilities.
+- Trivy scan blocks the build on fixable `HIGH` and `CRITICAL` image vulnerabilities, keeping the gate strict while avoiding false-red builds for unfixed base-image advisories.
 
 ## Production Extension Path
 
@@ -189,7 +189,7 @@ Scheduled tasks run in private subnets with `assign_public_ip = false`. NAT rout
 **Problem: Report-only Trivy scans allowed vulnerable images to pass CI**
 The Docker image scan previously used `exit-code: '0'`, which meant the workflow could stay green even if Trivy found high or critical vulnerabilities in the image.
 
-**Solution:** Changed the Trivy gate to `exit-code: '1'` and scoped the severity filter to `HIGH,CRITICAL`, so genuine exploit-level findings fail CI immediately without creating noise from lower-severity package advisories. When the stricter gate exposed runtime image findings, the Dockerfile was upgraded to Python 3.12, the direct HTTP dependency was patched, and `pip`/`setuptools`/`wheel` were stripped from the final runtime layer after dependency installation.
+**Solution:** Changed the Trivy gate to `exit-code: '1'` and scoped the severity filter to `HIGH,CRITICAL`, so genuine exploit-level findings fail CI immediately without creating noise from lower-severity package advisories. When the stricter gate exposed runtime image findings, the Dockerfile was upgraded to Python 3.12, the direct HTTP dependency was patched, and `pip`/`setuptools`/`wheel` were stripped from the final runtime layer after dependency installation. The scanner now ignores unfixed advisories while still failing the build on fixable `HIGH` and `CRITICAL` vulnerabilities.
 
 ## Reviewer Notes
 
