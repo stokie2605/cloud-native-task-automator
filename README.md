@@ -82,6 +82,26 @@ The Terraform configuration models a deployable AWS runtime:
 | `terraform/ecs_schedule.tf` | ECS Fargate task, CloudWatch logging, and EventBridge schedule |
 | `docs/walkthrough.md` | Guided reviewer walkthrough for interview or portfolio review |
 
+## ✅ Automated Testing
+
+The repository contains a `pytest` suite that verifies the health check utility logic:
+- Fetch target URL environment overrides.
+- Poll endpoint success and failure behaviors (using mocked HTTP responses).
+- JSON log formatter schema structure and details.
+- Health check execution exit codes (success, HTTP errors, timeouts).
+
+To run the unit tests locally:
+1. Install testing requirements:
+   ```bash
+   pip install -r requirements.txt -r requirements-dev.txt
+   ```
+2. Execute `pytest`:
+   ```bash
+   python -m pytest
+   ```
+
+The GitHub Actions CI pipeline runs these tests automatically on every push.
+
 ## Local Run
 
 Install dependencies and run the health check locally:
